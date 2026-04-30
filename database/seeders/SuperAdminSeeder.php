@@ -63,6 +63,9 @@ class SuperAdminSeeder extends Seeder
             'ver-mis-ventas',
             // Solicitudes de vendedores
             'ver-solicitudes-trabajo', 'aprobar-trabajo',
+            // Propiedades
+            'ver-propiedad',
+
         ])->get());
 
         // ── Profesional (Abogado, Contador, etc.) ─────────────
@@ -77,6 +80,8 @@ class SuperAdminSeeder extends Seeder
             'ver-servicio',
             // Ventas: el profesional puede comisionar en proyectos como vendedor
             'ver-mis-ventas',
+            // Propiedades
+            'ver-propiedad',
         ])->get());
 
         // ── Facturación / Cobros ──────────────────────────────
@@ -101,6 +106,8 @@ class SuperAdminSeeder extends Seeder
             'crear-solicitud-trabajo',
             'ver-cliente', 'crear-cliente',
             'ver-servicio',
+            // Propiedades
+            'ver-propiedad',
         ])->get());
 
         // ── Vendedor: acceso exclusivo a sus ventas + crear solicitudes ──
@@ -111,6 +118,8 @@ class SuperAdminSeeder extends Seeder
             'crear-solicitud-trabajo',  // puede crear solicitudes de proyecto
             'ver-cliente', 'crear-cliente',
             'ver-servicio',
+            // Propiedades
+            'ver-propiedad',
         ])->get());
 
         // ── Usuario Super Admin ────────────────────────────────
