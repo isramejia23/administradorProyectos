@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Trabajo;
+use App\Models\CuentaCobrar;
+
+class Cliente extends Model
+{
+    protected $fillable = [
+        'nombres_clientes',
+        'apellidos_clientes',
+        'razon_social',
+        'identificacion_clientes',
+        'email_cliente',
+        'celular_clientes',
+        'estado',
+    ];
+
+    /**
+     * Devuelve el nombre completo si existe, o la razón social como fallback.
+     */
+    public function getNombreCompletoAttribute(): string
+    {
+        $nombre = trim($this->nombres_clientes . ' ' . $this->apellidos_clientes);
+        return $nombre ?: ($this->razon_social ?? '—');
+    }
+
+    public function trabajos()
+    {
+        return $this->hasMany(Trabajo::class);
+    }
+
+    public function cuentasCobrar()
+    {
+        return $this->hasManyThrough(CuentaCobrar::class, Trabajo::class);
+    }
+}
