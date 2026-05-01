@@ -23,7 +23,8 @@ class ClienteController extends Controller
         if ($request->filled('buscar')) {
             $term = '%' . $request->buscar . '%';
             $query->where(function ($q) use ($term) {
-                $q->where('nombres_clientes',      'like', $term)
+                $q->where('codigo_cliente',        'like', $term)
+                  ->orWhere('nombres_clientes',      'like', $term)
                   ->orWhere('apellidos_clientes',  'like', $term)
                   ->orWhere('identificacion_clientes', 'like', $term)
                   ->orWhere('razon_social',         'like', $term)
@@ -217,7 +218,7 @@ class ClienteController extends Controller
             'email_cliente.email'            => 'El correo no es válido.',
         ]);
 
-        $cliente->update($request->all());
+        $cliente->update($request->except('codigo_cliente'));
 
         return redirect()->route('clientes.index')->with('success', 'Cliente actualizado correctamente.');
     }

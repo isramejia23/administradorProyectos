@@ -42,7 +42,8 @@ class TrabajoController extends Controller
         if ($request->filled('buscar')) {
             $term = '%' . $request->buscar . '%';
             $query->where(function ($q) use ($term) {
-                $q->whereHas('cliente', fn($c) => $c->where('nombres_clientes', 'like', $term)
+                $q->whereHas('cliente', fn($c) => $c->where('codigo_cliente', 'like', $term)
+                    ->orWhere('nombres_clientes', 'like', $term)
                     ->orWhere('apellidos_clientes', 'like', $term)
                     ->orWhere('razon_social', 'like', $term)
                 )
@@ -90,7 +91,7 @@ class TrabajoController extends Controller
         $this->authorize('create', Trabajo::class);
 
         $user        = auth()->user();
-        $esVendedor  = $user->can('crear-solicitud-trabajo') && ! $user->can('crear-trabajo');
+        $esVendedor  = ! $user->hasRole(['Super Admin', 'Administrador']);
         $clienteId   = $request->query('cliente_id');
 
         return view('proyectos.crear', array_merge(
@@ -104,7 +105,7 @@ class TrabajoController extends Controller
         $this->authorize('create', Trabajo::class);
 
         $user       = auth()->user();
-        $esVendedor = $user->can('crear-solicitud-trabajo') && ! $user->can('crear-trabajo');
+        $esVendedor = ! $user->hasRole(['Super Admin', 'Administrador']);
 
         if ($esVendedor) {
             $request->validate([
@@ -124,6 +125,7 @@ class TrabajoController extends Controller
                 'servicio_id'        => $request->servicio_id,
                 'departamento_id'    => $request->departamento_id,
                 'vendedor_id'        => $user->id,
+                'responsable_id'     => $user->can('gestionar-trabajo') ? $user->id : null,
                 'monto_total'        => $request->monto_total,
                 'nivel_urgencia'     => $request->nivel_urgencia,
                 'razon'              => $request->razon,

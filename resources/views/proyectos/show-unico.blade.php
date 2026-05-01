@@ -80,6 +80,7 @@
                         <div class="row g-2">
                             <div class="col-md-6 border-end">
                                 <p class="mb-1 fw-bold text-dark">{{ $proyecto->cliente->nombre_completo }}</p>
+                                <p class="mb-1"><span class="badge bg-secondary fw-normal" style="font-size:.7rem;">{{ $proyecto->cliente->codigo_cliente }}</span></p>
                                 <p class="mb-0 small"><i class="bi bi-envelope me-1 text-muted"></i>{{ $proyecto->cliente->email_cliente ?? '—' }}</p>
                             </div>
                             <div class="col-md-6 ps-md-3">

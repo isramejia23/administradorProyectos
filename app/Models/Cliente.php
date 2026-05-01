@@ -9,6 +9,7 @@ use App\Models\CuentaCobrar;
 class Cliente extends Model
 {
     protected $fillable = [
+        'codigo_cliente',
         'nombres_clientes',
         'apellidos_clientes',
         'razon_social',
@@ -18,6 +19,20 @@ class Cliente extends Model
         'estado',
         'claves_observaciones',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Cliente $cliente) {
+            if (empty($cliente->codigo_cliente)) {
+                $ultimo = static::whereNotNull('codigo_cliente')
+                    ->orderByRaw("CAST(SUBSTRING(codigo_cliente, 4) AS UNSIGNED) DESC")
+                    ->value('codigo_cliente');
+
+                $numero = $ultimo ? ((int) substr($ultimo, 3)) + 1 : 1420;
+                $cliente->codigo_cliente = 'CP-' . $numero;
+            }
+        });
+    }
 
     /**
      * Devuelve el nombre completo si existe, o la razón social como fallback.

@@ -25,7 +25,7 @@
             <div class="col-md-6">
                 <label class="form-label mb-1 small">Búsqueda libre</label>
                 <input type="text" name="buscar" class="form-control form-control-sm"
-                       placeholder="Nombre, apellido, identificación, razón social, email..."
+                       placeholder="Código (CP-...), nombre, identificación, razón social, email..."
                        value="{{ request('buscar') }}">
             </div>
             <div class="col-md-2">
@@ -58,6 +58,7 @@
         <table class="table mb-0">
             <thead>
                 <tr>
+                    <th>Código</th>
                     <th>Identificación</th>
                     <th>Nombre / Razón Social</th>
                     <th>Email</th>
@@ -70,6 +71,7 @@
             <tbody>
                 @forelse($clientes as $cliente)
                 <tr>
+                    <td><span class="badge bg-secondary fw-normal">{{ $cliente->codigo_cliente }}</span></td>
                     <td>{{ $cliente->identificacion_clientes }}</td>
                     <td>{{ $cliente->nombre_completo }}</td>
                     <td>{{ $cliente->email_cliente ?? '—' }}</td>
@@ -123,7 +125,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">No hay clientes registrados.</td>
+                    <td colspan="8" class="text-center text-muted py-4">No hay clientes registrados.</td>
                 </tr>
                 @endforelse
             </tbody>

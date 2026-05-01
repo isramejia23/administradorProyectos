@@ -34,6 +34,11 @@
                 </div>
                 <div class="card-body">
                     <dl class="row mb-0 small">
+                        <dt class="col-5 text-muted">Código</dt>
+                        <dd class="col-7">
+                            <span class="badge bg-secondary fw-normal">{{ $cliente->codigo_cliente }}</span>
+                        </dd>
+
                         <dt class="col-5 text-muted">Identificación</dt>
                         <dd class="col-7">{{ $cliente->identificacion_clientes }}</dd>
 

@@ -25,7 +25,7 @@
             <div class="col-md-3">
                 <label class="form-label mb-1 small">Cliente / Servicio</label>
                 <input type="text" name="buscar" class="form-control form-control-sm"
-                       placeholder="Nombre, razón social o servicio..." value="{{ request('buscar') }}">
+                       placeholder="Nombre, código (CP-...), razón social o servicio..." value="{{ request('buscar') }}">
             </div>
             @if(! ($soloDepto ?? false))
             <div class="col-md-2">
@@ -108,7 +108,10 @@
                 @forelse($proyectos as $proyecto)
                 <tr>
                     <td class="text-muted small">{{ $proyecto->id }}</td>
-                    <td class="small">{{ $proyecto->cliente->nombre_completo }}</td>
+                    <td class="small">
+                        {{ $proyecto->cliente->nombre_completo }}
+                        <br><span class="badge bg-secondary fw-normal" style="font-size:.65rem;">{{ $proyecto->cliente->codigo_cliente }}</span>
+                    </td>
                     <td class="small">
                         {{ $proyecto->servicio->nombre_servicio }}
                         @if($proyecto->trabajo_unico)
