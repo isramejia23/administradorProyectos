@@ -64,7 +64,7 @@
                                 <option value="">Buscar cliente...</option>
                                 @foreach($clientes as $c)
                                     <option value="{{ $c->id }}" {{ (old('cliente_id', $clienteIdPreseleccionado ?? '')) == $c->id ? 'selected' : '' }}>
-                                        {{ $c->nombre_completo }} — {{ $c->identificacion_clientes }}
+                                        {{ $c->codigo_cliente }} — {{ $c->nombre_completo }} — {{ $c->identificacion_clientes }}
                                     </option>
                                 @endforeach
                             </select>
@@ -74,7 +74,7 @@
                             <select name="departamento_id" id="sel-depto" class="form-select form-select-sm" required>
                                 <option value="">Seleccione departamento...</option>
                                 @foreach($departamentos as $id => $nombre)
-                                    <option value="{{ $id }}" {{ old('departamento_id') == $id ? 'selected' : '' }}>{{ $nombre }}</option>
+                                    <option value="{{ $id }}" {{ (old('departamento_id') ?: auth()->user()->departamento_id) == $id ? 'selected' : '' }}>{{ $nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -197,7 +197,7 @@
                                 <option value="">Buscar cliente...</option>
                                 @foreach($clientes as $c)
                                     <option value="{{ $c->id }}" {{ (old('cliente_id', $clienteIdPreseleccionado ?? '')) == $c->id ? 'selected' : '' }}>
-                                        {{ $c->nombre_completo }} — {{ $c->identificacion_clientes }}
+                                        {{ $c->codigo_cliente }} — {{ $c->nombre_completo }} — {{ $c->identificacion_clientes }}
                                     </option>
                                 @endforeach
                             </select>
@@ -207,7 +207,7 @@
                             <select name="departamento_id" id="sel-depto" class="form-select form-select-sm" required>
                                 <option value="">Seleccione departamento...</option>
                                 @foreach($departamentos as $id => $nombre)
-                                    <option value="{{ $id }}" {{ old('departamento_id') == $id ? 'selected' : '' }}>{{ $nombre }}</option>
+                                    <option value="{{ $id }}" {{ (old('departamento_id') ?: auth()->user()->departamento_id) == $id ? 'selected' : '' }}>{{ $nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -411,13 +411,18 @@
         onChange(val) { filtrarPorDepto(val); }
     });
 
-    const oldDepto = '{{ old('departamento_id') }}';
-    if (oldDepto) {
-        filtrarPorDepto(oldDepto);
-        servicioTs.setValue('{{ old('servicio_id') }}');
-        @unless($esVendedor)
-        responsableTs.setValue('{{ old('responsable_id') }}');
-        @endunless
+    const oldDepto  = '{{ old('departamento_id') }}';
+    const userDepto = '{{ auth()->user()->departamento_id }}';
+    const initDepto = oldDepto || userDepto;
+    if (initDepto) {
+        deptoTs.setValue(initDepto);
+        filtrarPorDepto(initDepto);
+        if (oldDepto) {
+            servicioTs.setValue('{{ old('servicio_id') }}');
+            @unless($esVendedor)
+            responsableTs.setValue('{{ old('responsable_id') }}');
+            @endunless
+        }
     } else {
         filtrarPorDepto(null);
     }

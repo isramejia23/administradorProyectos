@@ -3,7 +3,9 @@
 @section('content')
 @php
     $esAprobador = auth()->user()->can('ver-solicitudes-trabajo');
-    $backRoute   = $esAprobador ? route('proyectos.solicitudes') : route('proyectos.ventas');
+    $backRoute   = $esAprobador
+        ? route('proyectos.solicitudes')
+        : (auth()->user()->can('ver-mis-trabajos') ? route('proyectos.mis') : route('proyectos.ventas'));
 
     // Buscar en el historial quién procesó la solicitud
     $entradaProcesado = $historialSolicitud
@@ -73,6 +75,7 @@
                 <div class="row g-2">
                     <div class="col-md-6 border-end">
                         <p class="mb-1 fw-bold text-dark">{{ $proyecto->cliente->nombre_completo }}</p>
+                        <p class="mb-1"><span class="badge bg-secondary fw-normal" style="font-size:.7rem;">{{ $proyecto->cliente->codigo_cliente }}</span></p>
                         <p class="mb-0 small"><i class="bi bi-envelope me-1 text-muted"></i>{{ $proyecto->cliente->email_cliente ?? '—' }}</p>
                     </div>
                     <div class="col-md-6 ps-md-3">
@@ -178,10 +181,24 @@
                         <p class="text-muted small mb-0 mt-2">Fecha Estimada</p>
                         <p class="fw-semibold mb-0 small">{{ $proyecto->fecha_estimada?->format('d/m/Y') ?? '—' }}</p>
                     </div>
+                    @if($proyecto->vendedor)
                     <div class="col-12">
                         <p class="text-muted small mb-0 mt-2">Vendedor</p>
-                        <p class="fw-semibold mb-0 small">{{ $proyecto->vendedor?->nombre_completo ?? '—' }}</p>
+                        <p class="fw-semibold mb-0 small">{{ $proyecto->vendedor->nombre_completo }}</p>
                     </div>
+                    @endif
+                    @if($proyecto->responsable)
+                    <div class="col-12">
+                        <p class="text-muted small mb-0 mt-2">Responsable</p>
+                        <p class="fw-semibold mb-0 small">{{ $proyecto->responsable->nombre_completo }}</p>
+                    </div>
+                    @endif
+                    @if(!$proyecto->vendedor && !$proyecto->responsable)
+                    <div class="col-12">
+                        <p class="text-muted small mb-0 mt-2">Creado por</p>
+                        <p class="fw-semibold mb-0 small">—</p>
+                    </div>
+                    @endif
                     <div class="col-12">
                         <p class="text-muted small mb-0 mt-2">Enviada el</p>
                         <p class="fw-semibold mb-0 small">{{ $proyecto->created_at->format('d/m/Y H:i') }}</p>
@@ -236,7 +253,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="small text-muted mb-3">Explica el motivo. El vendedor podrá ver esta información.</p>
+                    <p class="small text-muted mb-3">Explica el motivo. El solicitante podrá ver esta información.</p>
                     <label class="form-label small">Motivo del Rechazo <span class="text-danger">*</span></label>
                     <textarea name="motivo_rechazo" class="form-control form-control-sm" rows="4"
                               maxlength="1000" placeholder="Describe por qué no se puede aprobar esta solicitud..." required></textarea>

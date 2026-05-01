@@ -89,7 +89,10 @@
                 @forelse($proyectos as $proyecto)
                 <tr>
                     <td class="text-muted small">{{ $proyecto->id }}</td>
-                    <td class="small">{{ $proyecto->cliente->nombre_completo }}</td>
+                    <td class="small">
+                        {{ $proyecto->cliente->nombre_completo }}
+                        <br><span class="badge bg-secondary fw-normal" style="font-size:.65rem;">{{ $proyecto->cliente->codigo_cliente }}</span>
+                    </td>
                     <td class="small">
                         {{ $proyecto->servicio->nombre_servicio }}
                         @if($proyecto->trabajo_unico)

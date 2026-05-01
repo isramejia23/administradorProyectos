@@ -66,7 +66,10 @@
                         @forelse($proyectos as $proyecto)
                         <tr>
                             <td class="text-muted small">{{ $proyecto->id }}</td>
-                            <td class="small" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ $proyecto->cliente->nombre_completo }}">{{ $proyecto->cliente->nombre_completo }}</td>
+                            <td class="small" style="max-width:160px;" title="{{ $proyecto->cliente->nombre_completo }}">
+                                <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $proyecto->cliente->nombre_completo }}</div>
+                                <span class="badge bg-secondary fw-normal" style="font-size:.62rem;">{{ $proyecto->cliente->codigo_cliente }}</span>
+                            </td>
                             <td class="small">
                                 {{ $proyecto->servicio->nombre_servicio }}
                                 @if($proyecto->trabajo_unico)
@@ -198,7 +201,10 @@
                         <tr class="table-warning">
                             <td class="text-muted small">{{ $proyecto->id }}</td>
                             <td class="small fw-semibold">{{ $proyecto->vendedor?->nombre_completo ?? '—' }}</td>
-                            <td class="small">{{ $proyecto->cliente->nombre_completo }}</td>
+                            <td class="small">
+                                {{ $proyecto->cliente->nombre_completo }}
+                                <br><span class="badge bg-secondary fw-normal" style="font-size:.62rem;">{{ $proyecto->cliente->codigo_cliente }}</span>
+                            </td>
                             <td class="small">{{ $proyecto->departamento->nombre_departamento }}</td>
                             <td class="small">{{ $proyecto->servicio->nombre_servicio }}</td>
                             <td class="small">${{ number_format($proyecto->monto_total, 2) }}</td>

@@ -100,9 +100,12 @@ class TrabajoPolicy
         if (! $user->can('aprobar-trabajo')) return false;
         if ($trabajo->estado_trabajo !== 'solicitud') return false;
 
-        // Admin ve todo; Jefe solo las de su departamento
+        // Admin ve todo; Jefe solo las de su departamento, pero nunca las suyas propias
         if ($this->esAdmin($user)) return true;
-        if ($this->esJefeDeDepto($user)) return $this->esDesuDepto($user, $trabajo);
+        if ($this->esJefeDeDepto($user)) {
+            $esCreador = $trabajo->vendedor_id === $user->id || $trabajo->responsable_id === $user->id;
+            return ! $esCreador && $this->esDesuDepto($user, $trabajo);
+        }
 
         return false;
     }

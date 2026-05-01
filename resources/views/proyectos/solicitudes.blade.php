@@ -63,7 +63,10 @@
                 <tr class="{{ $proyecto->estado_trabajo === 'solicitud' ? 'table-warning' : '' }}">
                     <td class="text-muted small">{{ $proyecto->id }}</td>
                     <td class="small fw-semibold">{{ $proyecto->vendedor?->nombre_completo ?? '—' }}</td>
-                    <td class="small">{{ $proyecto->cliente->nombre_completo }}</td>
+                    <td class="small">
+                        {{ $proyecto->cliente->nombre_completo }}
+                        <br><span class="badge bg-secondary fw-normal" style="font-size:.65rem;">{{ $proyecto->cliente->codigo_cliente }}</span>
+                    </td>
                     <td class="small">{{ $proyecto->departamento->nombre_departamento }}</td>
                     <td class="small">{{ $proyecto->servicio->nombre_servicio }}</td>
                     <td class="small">${{ number_format($proyecto->monto_total, 2) }}</td>

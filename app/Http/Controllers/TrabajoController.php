@@ -124,7 +124,7 @@ class TrabajoController extends Controller
                 'cliente_id'         => $request->cliente_id,
                 'servicio_id'        => $request->servicio_id,
                 'departamento_id'    => $request->departamento_id,
-                'vendedor_id'        => $user->id,
+                'vendedor_id'        => $user->can('gestionar-trabajo') ? null : $user->id,
                 'responsable_id'     => $user->can('gestionar-trabajo') ? $user->id : null,
                 'monto_total'        => $request->monto_total,
                 'nivel_urgencia'     => $request->nivel_urgencia,
@@ -393,10 +393,11 @@ class TrabajoController extends Controller
         if ($request->filled('buscar')) {
             $term = '%' . $request->buscar . '%';
             $query->whereHas('cliente', fn($q) => $q
-                ->where('nombres_clientes',          'like', $term)
-                ->orWhere('apellidos_clientes',       'like', $term)
-                ->orWhere('razon_social',             'like', $term)
-                ->orWhere('identificacion_clientes',  'like', $term)
+                ->where('codigo_cliente',             'like', $term)
+                ->orWhere('nombres_clientes',          'like', $term)
+                ->orWhere('apellidos_clientes',        'like', $term)
+                ->orWhere('razon_social',              'like', $term)
+                ->orWhere('identificacion_clientes',   'like', $term)
             );
         }
 
@@ -433,7 +434,8 @@ class TrabajoController extends Controller
             $term = '%' . $request->buscar . '%';
             $query->where(function ($q) use ($term) {
                 $q->whereHas('cliente', fn($c) => $c
-                    ->where('nombres_clientes', 'like', $term)
+                    ->where('codigo_cliente', 'like', $term)
+                    ->orWhere('nombres_clientes', 'like', $term)
                     ->orWhere('apellidos_clientes', 'like', $term)
                     ->orWhere('razon_social', 'like', $term)
                 )
@@ -457,9 +459,10 @@ class TrabajoController extends Controller
         if ($request->filled('buscar')) {
             $term = '%' . $request->buscar . '%';
             $query->whereHas('cliente', fn($q) => $q
-                ->where('nombres_clientes',   'like', $term)
-                ->orWhere('apellidos_clientes','like', $term)
-                ->orWhere('razon_social',      'like', $term)
+                ->where('codigo_cliente',      'like', $term)
+                ->orWhere('nombres_clientes',   'like', $term)
+                ->orWhere('apellidos_clientes', 'like', $term)
+                ->orWhere('razon_social',       'like', $term)
                 ->orWhere('identificacion_clientes', 'like', $term)
             );
         }
@@ -516,7 +519,8 @@ class TrabajoController extends Controller
             $term = '%' . $request->buscar . '%';
             $query->where(function ($q) use ($term) {
                 $q->whereHas('cliente', fn($c) => $c
-                    ->where('nombres_clientes', 'like', $term)
+                    ->where('codigo_cliente', 'like', $term)
+                    ->orWhere('nombres_clientes', 'like', $term)
                     ->orWhere('apellidos_clientes', 'like', $term)
                     ->orWhere('razon_social', 'like', $term)
                 )

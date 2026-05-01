@@ -43,7 +43,7 @@
                                 <option value="">Buscar cliente...</option>
                                 @foreach($clientes as $c)
                                     <option value="{{ $c->id }}" {{ old('cliente_id', $proyecto->cliente_id) == $c->id ? 'selected' : '' }}>
-                                        {{ $c->nombre_completo }} — {{ $c->identificacion_clientes }}
+                                        {{ $c->codigo_cliente }} — {{ $c->nombre_completo }} — {{ $c->identificacion_clientes }}
                                     </option>
                                 @endforeach
                             </select>
