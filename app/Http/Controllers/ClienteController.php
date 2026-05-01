@@ -218,7 +218,18 @@ class ClienteController extends Controller
             'email_cliente.email'            => 'El correo no es válido.',
         ]);
 
-        $cliente->update($request->except('codigo_cliente'));
+        $data = $request->except('codigo_cliente');
+
+        if (empty($cliente->codigo_cliente) && $request->filled('codigo_cliente')) {
+            $request->validate([
+                'codigo_cliente' => 'unique:clientes,codigo_cliente',
+            ], [
+                'codigo_cliente.unique' => 'Ese código ya está asignado a otro cliente.',
+            ]);
+            $data['codigo_cliente'] = strtoupper(trim($request->codigo_cliente));
+        }
+
+        $cliente->update($data);
 
         return redirect()->route('clientes.index')->with('success', 'Cliente actualizado correctamente.');
     }

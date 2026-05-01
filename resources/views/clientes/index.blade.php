@@ -99,6 +99,7 @@
                                     class="btn btn-sm btn-outline-secondary "
                                     title="Editar"
                                     onclick="modalEditar({{ $cliente->id }}, {
+                                        codigo:   '{{ addslashes($cliente->codigo_cliente ?? '') }}',
                                         nombres:  '{{ addslashes($cliente->nombres_clientes) }}',
                                         apellidos:'{{ addslashes($cliente->apellidos_clientes) }}',
                                         razon:    '{{ addslashes($cliente->razon_social ?? '') }}',
@@ -153,14 +154,15 @@
 @can('editar-cliente')
 <form id="form-editar" method="POST" class="d-none">
     @csrf @method('PUT')
-    <input name="nombres_clientes"        id="e-nombres">
-    <input name="apellidos_clientes"      id="e-apellidos">
-    <input name="razon_social"            id="e-razon">
-    <input name="identificacion_clientes" id="e-ident">
-    <input name="email_cliente"           id="e-email">
-    <input name="celular_clientes"        id="e-celular">
-    <input name="estado"                  id="e-estado">
-    <textarea name="claves_observaciones" id="e-claves"></textarea>
+    <input name="codigo_cliente"           id="e-codigo">
+    <input name="nombres_clientes"         id="e-nombres">
+    <input name="apellidos_clientes"       id="e-apellidos">
+    <input name="razon_social"             id="e-razon">
+    <input name="identificacion_clientes"  id="e-ident">
+    <input name="email_cliente"            id="e-email">
+    <input name="celular_clientes"         id="e-celular">
+    <input name="estado"                   id="e-estado">
+    <textarea name="claves_observaciones"  id="e-claves"></textarea>
 </form>
 @endcan
 
@@ -186,6 +188,19 @@ function formHtml(d = {}) {
                 </div>
                 <div id="consulta-feedback" class="small mt-1"></div>
             </div>
+
+            ${d.codigo !== undefined ? `
+            <div class="col-12">
+                <label class="form-label small mb-1">Código de Cliente</label>
+                ${d.codigo
+                    ? `<input class="form-control form-control-sm" value="${d.codigo}" readonly
+                              style="background:#f8f9fa;color:#6c757d;cursor:not-allowed;">`
+                    : `<input id="swal-codigo" class="form-control form-control-sm"
+                              placeholder="CP-1420" maxlength="20"
+                              oninput="this.value=this.value.toUpperCase()">
+                       <div class="form-text" style="font-size:.7rem;">Déjalo vacío para que se asigne automáticamente al guardar.</div>`
+                }
+            </div>` : ''}
 
             <div class="col-6">
                 <label class="form-label small mb-1">Nombres</label>
@@ -267,6 +282,7 @@ async function consultarIdentificacion() {
 
 function getValues() {
     return {
+        codigo:    document.getElementById('swal-codigo')?.value.trim() || '',
         nombres:   document.getElementById('swal-nombres')?.value.trim(),
         apellidos: document.getElementById('swal-apellidos')?.value.trim(),
         ident:     document.getElementById('swal-ident')?.value.trim(),
@@ -299,6 +315,7 @@ function submitCrear(v) {
 function submitEditar(id, v) {
     const form = document.getElementById('form-editar');
     form.action = `/clientes/${id}`;
+    document.getElementById('e-codigo').value    = v.codigo || '';
     document.getElementById('e-nombres').value   = v.nombres;
     document.getElementById('e-apellidos').value = v.apellidos;
     document.getElementById('e-razon').value     = v.razon;
