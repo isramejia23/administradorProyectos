@@ -67,6 +67,11 @@
 
                         <dt class="col-5 text-muted">Registrado</dt>
                         <dd class="col-7">{{ $cliente->created_at->format('d/m/Y') }}</dd>
+
+                        @if($cliente->claves_observaciones)
+                        <dt class="col-5 text-muted">Claves / Obs.</dt>
+                        <dd class="col-7" style="white-space:pre-wrap">{{ $cliente->claves_observaciones }}</dd>
+                        @endif
                     </dl>
                 </div>
                 @can('editar-cliente')
@@ -254,6 +259,7 @@
     <input name="email_cliente"           id="es-email">
     <input name="celular_clientes"        id="es-celular">
     <input name="estado"                  id="es-estado">
+    <textarea name="claves_observaciones" id="es-claves"></textarea>
 </form>
 @endcan
 
@@ -269,6 +275,7 @@ function modalEditarCliente() {
         email:    '{{ addslashes($cliente->email_cliente ?? '') }}',
         celular:  '{{ addslashes($cliente->celular_clientes ?? '') }}',
         estado:   '{{ $cliente->estado }}',
+        claves:   '{{ str_replace(["\r\n","\n","\r"], "\\n", addslashes($cliente->claves_observaciones ?? '')) }}',
     };
 
     Swal.fire({
@@ -310,6 +317,10 @@ function modalEditarCliente() {
                            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                            value="${d.celular}">
                 </div>
+                <div class="col-12">
+                    <label class="form-label small mb-1">Claves / Observaciones</label>
+                    <textarea id="es-swal-claves" class="form-control form-control-sm" rows="3">${d.claves.replace(/\\n/g, '\n')}</textarea>
+                </div>
             </div>
         </div>`,
         width: 520,
@@ -331,6 +342,7 @@ function modalEditarCliente() {
         document.getElementById('es-email').value     = document.getElementById('es-swal-email').value.trim();
         document.getElementById('es-celular').value   = document.getElementById('es-swal-celular').value.trim();
         document.getElementById('es-estado').value    = document.getElementById('es-swal-estado').value;
+        document.getElementById('es-claves').value    = document.getElementById('es-swal-claves').value;
         f.submit();
     });
 }

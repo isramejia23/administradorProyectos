@@ -36,7 +36,8 @@ class ClienteController extends Controller
             $query->where('estado', $request->estado);
         }
 
-        $clientes = $query->orderBy('nombres_clientes')->paginate(15)->withQueryString();
+        $orden    = $request->input('orden', 'desc');
+        $clientes = $query->orderBy('created_at', $orden === 'asc' ? 'asc' : 'desc')->paginate(15)->withQueryString();
 
         return view('clientes.index', compact('clientes'));
     }
@@ -183,6 +184,7 @@ class ClienteController extends Controller
             'email_cliente'          => 'nullable|email|max:150',
             'celular_clientes'       => 'nullable|string|max:15',
             'estado'                 => 'required|in:Activo,Inactivo',
+            'claves_observaciones'   => 'nullable|string',
         ], [
             'nombres_clientes.required'        => 'El nombre es obligatorio.',
             'apellidos_clientes.required'      => 'El apellido es obligatorio.',
@@ -209,6 +211,7 @@ class ClienteController extends Controller
             'email_cliente'          => 'nullable|email|max:150',
             'celular_clientes'       => 'nullable|string|max:15',
             'estado'                 => 'required|in:Activo,Inactivo',
+            'claves_observaciones'   => 'nullable|string',
         ], [
             'identificacion_clientes.unique' => 'Esta identificación ya está registrada.',
             'email_cliente.email'            => 'El correo no es válido.',

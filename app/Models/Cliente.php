@@ -16,6 +16,7 @@ class Cliente extends Model
         'email_cliente',
         'celular_clientes',
         'estado',
+        'claves_observaciones',
     ];
 
     /**

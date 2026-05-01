@@ -12,6 +12,10 @@ class PagoController extends Controller
     {
         abort_unless(auth()->user()->can('crear-pago'), 403);
 
+        if ($cobro->trabajo->estado_trabajo === 'cancelado') {
+            return back()->with('error', 'No se pueden registrar pagos en un proyecto cancelado.');
+        }
+
         $request->validate([
             'monto'       => ['required', 'numeric', 'min:0.01', 'max:' . $cobro->saldo],
             'fecha_pago'  => 'required|date',
@@ -38,6 +42,10 @@ class PagoController extends Controller
     {
         abort_unless(auth()->user()->can('editar-pago'), 403);
         abort_unless($pago->cuenta_cobrar_id === $cobro->id, 404);
+
+        if ($cobro->trabajo->estado_trabajo === 'cancelado') {
+            return back()->with('error', 'No se pueden editar pagos en un proyecto cancelado.');
+        }
 
         if ($pago->is_anulado) {
             return back()->with('error', 'No se puede editar un pago que ya fue anulado.');

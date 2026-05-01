@@ -13,43 +13,85 @@ class CuentaCobrarController extends Controller
     {
         abort_unless(auth()->user()->can('ver-cuenta-cobrar'), 403);
 
-        $query = CuentaCobrar::with(['trabajo.cliente', 'trabajo.servicio', 'trabajo.departamento'])
-            ->latest();
+        $applyFilters = function ($q) use ($request) {
+            if ($request->filled('estado_pago')) {
+                $q->where(function ($inner) use ($request) {
+                    match ($request->estado_pago) {
+                        'pendiente' => $inner->where('monto_pagado', 0),
+                        'parcial'   => $inner->where('monto_pagado', '>', 0)->whereRaw('monto_pagado < monto_total'),
+                        'pagado'    => $inner->whereRaw('monto_pagado >= monto_total'),
+                        'con_saldo' => $inner->whereRaw('monto_pagado < monto_total'),
+                        default     => null,
+                    };
+                });
+            }
 
-        if ($request->filled('estado_pago')) {
-            $query->where(function ($q) use ($request) {
-                match ($request->estado_pago) {
-                    'pendiente' => $q->where('monto_pagado', 0),
-                    'parcial'   => $q->where('monto_pagado', '>', 0)->whereRaw('monto_pagado < monto_total'),
-                    'pagado'    => $q->whereRaw('monto_pagado >= monto_total'),
+            if ($request->filled('buscar')) {
+                $term = '%' . $request->buscar . '%';
+                $q->whereHas('trabajo.cliente', fn($sub) => $sub
+                    ->where('nombres_clientes',        'like', $term)
+                    ->orWhere('apellidos_clientes',     'like', $term)
+                    ->orWhere('razon_social',            'like', $term)
+                    ->orWhere('identificacion_clientes', 'like', $term)
+                );
+            }
+
+            if ($request->filled('vencimiento')) {
+                match ($request->vencimiento) {
+                    'vencidas'  => $q->whereNotNull('fecha_vencimiento')->where('fecha_vencimiento', '<', today()),
+                    'proximas'  => $q->whereNotNull('fecha_vencimiento')
+                                     ->whereBetween('fecha_vencimiento', [today(), today()->addDays(7)]),
+                    'sin_fecha' => $q->whereNull('fecha_vencimiento'),
                     default     => null,
                 };
-            });
-        }
+            }
+        };
 
-        if ($request->filled('buscar')) {
-            $term = '%' . $request->buscar . '%';
-            $query->whereHas('trabajo.cliente', fn($q) => $q
-                ->where('nombres_clientes',         'like', $term)
-                ->orWhere('apellidos_clientes',      'like', $term)
-                ->orWhere('razon_social',             'like', $term)
-                ->orWhere('identificacion_clientes',  'like', $term)
-            );
-        }
+        // Query principal con relaciones para la tabla
+        $query = CuentaCobrar::with(['trabajo.cliente', 'trabajo.servicio', 'trabajo.departamento'])->latest();
+        $applyFilters($query);
 
-        if ($request->filled('vencimiento')) {
-            match ($request->vencimiento) {
-                'vencidas'  => $query->whereNotNull('fecha_vencimiento')->where('fecha_vencimiento', '<', today()),
-                'proximas'  => $query->whereNotNull('fecha_vencimiento')
-                                     ->whereBetween('fecha_vencimiento', [today(), today()->addDays(7)]),
-                'sin_fecha' => $query->whereNull('fecha_vencimiento'),
-                default     => null,
-            };
-        }
+        // Queries limpios para KPIs — solo proyectos activos (excluye cancelados, solicitudes y rechazados)
+        $kpiBase = CuentaCobrar::whereHas('trabajo', fn($q) => $q->whereNotIn('estado_trabajo', ['cancelado', 'solicitud', 'rechazado']));
+        $applyFilters($kpiBase);
+
+        // Alias "importe" en vez de "saldo" para evitar colisión con el accessor getSaldoAttribute()
+        $kpiPendiente = (clone $kpiBase)
+            ->toBase()
+            ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(monto_total - monto_pagado), 0) as importe')
+            ->whereRaw('monto_pagado < monto_total')
+            ->first();
+
+        $kpiVencidas = (clone $kpiBase)
+            ->toBase()
+            ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(monto_total - monto_pagado), 0) as importe')
+            ->whereRaw('monto_pagado < monto_total')
+            ->whereNotNull('fecha_vencimiento')
+            ->where('fecha_vencimiento', '<', today())
+            ->first();
+
+        $kpiPorVencer = (clone $kpiBase)
+            ->toBase()
+            ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(monto_total - monto_pagado), 0) as importe')
+            ->whereRaw('monto_pagado < monto_total')
+            ->whereNotNull('fecha_vencimiento')
+            ->whereBetween('fecha_vencimiento', [today(), today()->addDays(7)])
+            ->first();
+
+        $kpiTasa = (clone $kpiBase)
+            ->toBase()
+            ->selectRaw('COALESCE(SUM(monto_total), 0) as total, COALESCE(SUM(monto_pagado), 0) as pagado')
+            ->first();
+        $tasaPct = $kpiTasa->total > 0
+            ? round($kpiTasa->pagado / $kpiTasa->total * 100, 1)
+            : null;
 
         $cuentas = $query->paginate(15)->withQueryString();
 
-        return view('cobros.index', compact('cuentas'));
+        return view('cobros.index', compact(
+            'cuentas',
+            'kpiPendiente', 'kpiVencidas', 'kpiPorVencer', 'tasaPct'
+        ));
     }
 
     public function show(CuentaCobrar $cobro)
@@ -74,6 +116,11 @@ class CuentaCobrarController extends Controller
     public function update(Request $request, CuentaCobrar $cobro)
     {
         abort_unless(auth()->user()->can('editar-cuenta-cobrar'), 403);
+
+        if ($cobro->trabajo->estado_trabajo === 'cancelado') {
+            return back()->with('error', 'No se puede editar la cuenta de un proyecto cancelado.');
+        }
+
         abort_if($cobro->saldo <= 0, 422);
 
         $request->validate([

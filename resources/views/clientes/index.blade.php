@@ -36,6 +36,13 @@
                     <option value="Inactivo" {{ request('estado') === 'Inactivo' ? 'selected' : '' }}>Inactivo</option>
                 </select>
             </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1 small">Ordenar por fecha</label>
+                <select name="orden" class="form-select form-select-sm">
+                    <option value="desc" {{ request('orden', 'desc') === 'desc' ? 'selected' : '' }}>Más recientes primero</option>
+                    <option value="asc"  {{ request('orden') === 'asc'  ? 'selected' : '' }}>Más antiguos primero</option>
+                </select>
+            </div>
             <div class="col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-sm w-100">
                     <i class="bi bi-search"></i> Buscar
@@ -56,6 +63,7 @@
                     <th>Email</th>
                     <th>Celular</th>
                     <th>Estado</th>
+                    <th>Registrado</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -71,6 +79,7 @@
                             {{ $cliente->estado }}
                         </span>
                     </td>
+                    <td class="text-muted small">{{ $cliente->created_at->format('d/m/Y') }}</td>
                     <td>
                         <div class="d-flex align-items-center justify-content-center gap-1">
                             <a href="{{ route('clientes.show', $cliente->id) }}"
@@ -94,7 +103,8 @@
                                         ident:    '{{ addslashes($cliente->identificacion_clientes) }}',
                                         email:    '{{ addslashes($cliente->email_cliente ?? '') }}',
                                         celular:  '{{ addslashes($cliente->celular_clientes ?? '') }}',
-                                        estado:   '{{ $cliente->estado }}'
+                                        estado:   '{{ $cliente->estado }}',
+                                        claves:   '{{ str_replace(["\r\n","\n","\r"], "\\n", addslashes($cliente->claves_observaciones ?? '')) }}'
                                     })">
                                 <i class="bi bi-pencil" style="font-size:1rem;"></i>
                             </button>
@@ -113,7 +123,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">No hay clientes registrados.</td>
+                    <td colspan="7" class="text-center text-muted py-4">No hay clientes registrados.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -134,6 +144,7 @@
     <input name="email_cliente"           id="c-email">
     <input name="celular_clientes"        id="c-celular">
     <input name="estado"                  id="c-estado">
+    <textarea name="claves_observaciones" id="c-claves"></textarea>
 </form>
 @endcan
 
@@ -147,6 +158,7 @@
     <input name="email_cliente"           id="e-email">
     <input name="celular_clientes"        id="e-celular">
     <input name="estado"                  id="e-estado">
+    <textarea name="claves_observaciones" id="e-claves"></textarea>
 </form>
 @endcan
 
@@ -202,6 +214,10 @@ function formHtml(d = {}) {
                        inputmode="numeric" pattern="[0-9]*"
                        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             </div>
+            <div class="col-12">
+                <label class="form-label small mb-1">Claves / Observaciones</label>
+                <textarea id="swal-claves" class="form-control form-control-sm" rows="3">${(d.claves || '').replace(/\\n/g, '\n')}</textarea>
+            </div>
         </div>
     </div>`;
 }
@@ -256,6 +272,7 @@ function getValues() {
         razon:     document.getElementById('swal-razon')?.value.trim(),
         email:     document.getElementById('swal-email')?.value.trim(),
         estado:    document.getElementById('swal-estado')?.value,
+        claves:    document.getElementById('swal-claves')?.value,
     };
 }
 
@@ -273,6 +290,7 @@ function submitCrear(v) {
     document.getElementById('c-email').value     = v.email;
     document.getElementById('c-celular').value   = v.celular;
     document.getElementById('c-estado').value    = v.estado;
+    document.getElementById('c-claves').value    = v.claves;
     document.getElementById('form-crear').submit();
 }
 
@@ -286,6 +304,7 @@ function submitEditar(id, v) {
     document.getElementById('e-email').value     = v.email;
     document.getElementById('e-celular').value   = v.celular;
     document.getElementById('e-estado').value    = v.estado;
+    document.getElementById('e-claves').value    = v.claves;
     form.submit();
 }
 

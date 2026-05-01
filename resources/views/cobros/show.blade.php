@@ -13,26 +13,33 @@
             Cuenta #{{ $cobro->id }} — {{ $cobro->trabajo->cliente->nombre_completo }}
         </h4>
         <div class="ms-auto d-flex gap-2">
-            @can('editar-cuenta-cobrar')
-            @if($cobro->saldo > 0)
-            <button type="button" class="btn btn-outline-secondary btn-sm"
-                    data-bs-toggle="modal" data-bs-target="#modalEditarCuenta">
-                <i class="bi bi-pencil me-1"></i> Editar Cuenta
-            </button>
-            @endif
-            @endcan
-            @can('crear-pago')
-            @if($cobro->saldo > 0)
-            <button type="button" class="btn btn-primary btn-sm"
-                    data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">
-                <i class="bi bi-plus-circle me-1"></i> Registrar Pago
-            </button>
+            @php $cancelado = $cobro->trabajo->estado_trabajo === 'cancelado'; @endphp
+            @if($cancelado)
+                <span class="badge bg-danger px-3 py-2" style="font-size:.8rem;">
+                    <i class="bi bi-slash-circle me-1"></i> Cuenta Suspendida
+                </span>
             @else
-            <span class="badge bg-success px-3 py-2" style="font-size:.8rem;">
-                <i class="bi bi-check-circle me-1"></i> Cuenta Pagada
-            </span>
+                @can('editar-cuenta-cobrar')
+                @if($cobro->saldo > 0)
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#modalEditarCuenta">
+                    <i class="bi bi-pencil me-1"></i> Editar Cuenta
+                </button>
+                @endif
+                @endcan
+                @can('crear-pago')
+                @if($cobro->saldo > 0)
+                <button type="button" class="btn btn-primary btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">
+                    <i class="bi bi-plus-circle me-1"></i> Registrar Pago
+                </button>
+                @else
+                <span class="badge bg-success px-3 py-2" style="font-size:.8rem;">
+                    <i class="bi bi-check-circle me-1"></i> Cuenta Pagada
+                </span>
+                @endif
+                @endcan
             @endif
-            @endcan
         </div>
     </div>
 
@@ -68,18 +75,18 @@
                         <dd class="col-7 mb-1">
                             @php
                                 $epBadge = match($cobro->trabajo->estado_trabajo) {
-                                    'pendiente'  => 'info',
-                                    'en_proceso' => 'primary',
-                                    'terminado'  => 'success',
-                                    'cancelado'  => 'danger',
-                                    default      => 'secondary',
+                                    'pendiente' => 'info',
+                                    'proceso'   => 'primary',
+                                    'terminado' => 'success',
+                                    'cancelado' => 'danger',
+                                    default     => 'secondary',
                                 };
                                 $epLabel = match($cobro->trabajo->estado_trabajo) {
-                                    'pendiente'  => 'Pendiente',
-                                    'en_proceso' => 'En Proceso',
-                                    'terminado'  => 'Terminado',
-                                    'cancelado'  => 'Cancelado',
-                                    default      => ucfirst($cobro->trabajo->estado_trabajo ?? '—'),
+                                    'pendiente' => 'Pendiente',
+                                    'proceso'   => 'En Proceso',
+                                    'terminado' => 'Terminado',
+                                    'cancelado' => 'Cancelado',
+                                    default     => ucfirst($cobro->trabajo->estado_trabajo ?? '—'),
                                 };
                             @endphp
                             <span class="badge bg-{{ $epBadge }}" style="font-size:.72rem;">{{ $epLabel }}</span>
@@ -146,9 +153,15 @@
                     <div class="card border-0 shadow-sm text-center h-100">
                         <div class="card-body py-3">
                             <div class="text-muted small mb-1">Estado</div>
+                            @if($cancelado)
+                            <span class="badge bg-danger fs-6 mt-1">
+                                <i class="bi bi-slash-circle me-1"></i> Suspendida
+                            </span>
+                            @else
                             <span class="badge bg-{{ $cobro->estado_pago_badge }} fs-6 mt-1">
                                 {{ $cobro->estado_pago_label }}
                             </span>
+                            @endif
                         </div>
                     </div>
                 </div>

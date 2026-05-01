@@ -197,7 +197,7 @@ class TrabajoController extends Controller
 
         $proyecto->load(['cliente', 'servicio', 'departamento', 'vendedor', 'responsable',
                          'subtrabajos.responsable', 'subtrabajos.departamento', 'subtrabajos.servicio',
-                         'subtrabajos.historial.usuario']);
+                         'subtrabajos.historial.usuario', 'cuentaCobrar']);
         $departamentos = Departamento::orderBy('nombre_departamento')->get();
         $servicios     = Servicio::where('estatus', 'Activo')->orderBy('nombre_servicio')->get();
         $historial     = $proyecto->historial()->with('usuario')->get();
@@ -575,6 +575,16 @@ class TrabajoController extends Controller
             'valor_nuevo'    => 'pendiente',
             'created_at'     => now(),
         ]);
+
+        if (! $proyecto->cuentaCobrar()->exists()) {
+            \App\Models\CuentaCobrar::create([
+                'trabajo_id'   => $proyecto->id,
+                'monto_base'   => $proyecto->monto_total,
+                'monto_extras' => 0,
+                'monto_total'  => $proyecto->monto_total,
+                'monto_pagado' => 0,
+            ]);
+        }
 
         if ($proyecto->trabajo_unico) {
             $proyecto->crearSubtrabajoPrincipal();

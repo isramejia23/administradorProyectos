@@ -71,7 +71,15 @@
                 {{-- Cliente --}}
                 <div class="col-12">
                     <div class="bg-white rounded shadow-sm p-3 card-section">
-                        <h6 class="card-section-title"><i class="bi bi-person-vcard me-1"></i> Cliente</h6>
+                        <h6 class="card-section-title d-flex align-items-center justify-content-between">
+                            <span><i class="bi bi-person-vcard me-1"></i> Cliente</span>
+                            <button type="button"
+                                    class="btn btn-sm py-0 px-2"
+                                    style="font-size:.72rem;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);"
+                                    data-bs-toggle="modal" data-bs-target="#modalInfoCliente">
+                                <i class="bi bi-person-lines-fill me-1"></i> Ver ficha
+                            </button>
+                        </h6>
                         <div class="row g-2">
                             <div class="col-md-6 border-end">
                                 <p class="mb-1 fw-bold text-dark">{{ $proyecto->cliente->nombre_completo }}</p>
@@ -142,7 +150,9 @@
                 <div class="col-12">
                     <div class="bg-white rounded shadow-sm p-4 card-section">
                         <h6 class="card-section-title"><i class="bi bi-calendar3 me-1"></i> Fechas y Monto</h6>
-                        <div class="row g-2 text-center">
+
+                        {{-- Fila 1: fechas --}}
+                        <div class="row g-2 text-center mb-3">
                             <div class="col">
                                 <p class="text-muted small mb-0"><i class="bi bi-plus-circle me-1"></i>Creación</p>
                                 <p class="fw-bold mb-0 small">{{ $proyecto->created_at->format('d/m/Y H:i') }}</p>
@@ -159,11 +169,46 @@
                                 <p class="text-muted small mb-0"><i class="bi bi-calendar-x me-1"></i>Finalización</p>
                                 <p class="fw-bold mb-0 small">{{ $proyecto->fecha_fin?->format('d/m/Y') ?? '—' }}</p>
                             </div>
+                        </div>
+
+                        {{-- Fila 2: monto + estado de pago --}}
+                        <hr class="my-2">
+                        @if($proyecto->cuentaCobrar)
+                        @php
+                            $cxc        = $proyecto->cuentaCobrar;
+                            $saldo      = max(0, (float)$cxc->monto_total - (float)$cxc->monto_pagado);
+                            $pct        = $cxc->monto_total > 0 ? min(100, round((float)$cxc->monto_pagado / (float)$cxc->monto_total * 100, 1)) : 0;
+                            $badgeColor = $saldo <= 0 ? '#198754' : ((float)$cxc->monto_pagado > 0 ? '#fd7e14' : '#0dcaf0');
+                            $badgeLabel = $saldo <= 0 ? 'Pagado' : ((float)$cxc->monto_pagado > 0 ? 'Parcial' : 'Pendiente');
+                        @endphp
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="text-muted" style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Estado de Pago</span>
+                            <span class="badge" style="background:{{ $badgeColor }};font-size:.65rem;">{{ $badgeLabel }}</span>
+                        </div>
+                        <div class="row g-1 text-center mb-1">
                             <div class="col">
-                                <p class="text-muted small mb-0"><i class="bi bi-cash-coin me-1"></i>Monto Total</p>
-                                <p class="fw-bold fs-5 mb-0">${{ number_format($proyecto->monto_total, 2) }}</p>
+                                <p class="text-muted mb-0" style="font-size:.68rem;"><i class="bi bi-cash-coin me-1"></i>Total</p>
+                                <p class="fw-semibold mb-0 small">${{ number_format($cxc->monto_total, 2) }}</p>
+                            </div>
+                            <div class="col">
+                                <p class="text-muted mb-0" style="font-size:.68rem;"><i class="bi bi-check-circle me-1"></i>Pagado</p>
+                                <p class="fw-semibold mb-0 small" style="color:#198754;">${{ number_format($cxc->monto_pagado, 2) }}</p>
+                            </div>
+                            <div class="col">
+                                <p class="text-muted mb-0" style="font-size:.68rem;"><i class="bi bi-hourglass-split me-1"></i>Saldo</p>
+                                <p class="fw-semibold mb-0 small" style="color:{{ $saldo > 0 ? '#dc3545' : '#198754' }};">${{ number_format($saldo, 2) }}</p>
                             </div>
                         </div>
+                        <div class="progress" style="height:4px;">
+                            <div class="progress-bar bg-success" style="width:{{ $pct }}%"></div>
+                        </div>
+                        <div style="font-size:.62rem;color:#aaa;text-align:right;margin-top:1px;">{{ $pct }}% cobrado</div>
+                        @else
+                        <div class="text-center">
+                            <p class="text-muted small mb-0"><i class="bi bi-cash-coin me-1"></i>Monto Total</p>
+                            <p class="fw-semibold mb-0 small">${{ number_format($proyecto->monto_total, 2) }}</p>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -388,6 +433,75 @@
                     Sin cambios registrados aún.
                 </div>
                 @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ══ MODAL FICHA CLIENTE ══ --}}
+<div class="modal fade" id="modalInfoCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#1a1a1a;">
+                <h6 class="modal-title text-white fw-semibold">
+                    <i class="bi bi-person-vcard me-1"></i> Ficha del Cliente
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-muted">Identificación</dt>
+                    <dd class="col-7">{{ $proyecto->cliente->identificacion_clientes }}</dd>
+
+                    @if($proyecto->cliente->nombres_clientes || $proyecto->cliente->apellidos_clientes)
+                    <dt class="col-5 text-muted">Nombres</dt>
+                    <dd class="col-7">{{ trim($proyecto->cliente->nombres_clientes . ' ' . $proyecto->cliente->apellidos_clientes) }}</dd>
+                    @endif
+
+                    @if($proyecto->cliente->razon_social)
+                    <dt class="col-5 text-muted">Razón Social</dt>
+                    <dd class="col-7">{{ $proyecto->cliente->razon_social }}</dd>
+                    @endif
+
+                    <dt class="col-5 text-muted">Email</dt>
+                    <dd class="col-7">
+                        @if($proyecto->cliente->email_cliente)
+                            <a href="mailto:{{ $proyecto->cliente->email_cliente }}">{{ $proyecto->cliente->email_cliente }}</a>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </dd>
+
+                    <dt class="col-5 text-muted">Celular</dt>
+                    <dd class="col-7">
+                        @if($proyecto->cliente->celular_clientes)
+                            <a href="tel:{{ $proyecto->cliente->celular_clientes }}">{{ $proyecto->cliente->celular_clientes }}</a>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </dd>
+
+                    <dt class="col-5 text-muted">Estado</dt>
+                    <dd class="col-7">
+                        <span class="badge bg-{{ $proyecto->cliente->estado === 'Activo' ? 'success' : 'secondary' }}">
+                            {{ $proyecto->cliente->estado }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-5 text-muted">Registrado</dt>
+                    <dd class="col-7">{{ $proyecto->cliente->created_at->format('d/m/Y') }}</dd>
+
+                    <dt class="col-5 text-muted">Claves / Obs.</dt>
+                    <dd class="col-7" style="white-space:pre-wrap">{{ $proyecto->cliente->claves_observaciones ?? '—' }}</dd>
+                </dl>
+            </div>
+            <div class="modal-footer py-2">
+                @can('ver-cliente')
+                <a href="{{ route('clientes.show', $proyecto->cliente->id) }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Ver ficha completa
+                </a>
+                @endcan
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

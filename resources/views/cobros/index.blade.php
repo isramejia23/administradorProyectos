@@ -9,6 +9,87 @@
         </h4>
     </div>
 
+    {{-- KPIs --}}
+    <div class="row g-3 mb-4">
+
+        {{-- Total Pendiente --}}
+        <div class="col-6 col-xl-3">
+            <a href="{{ route('cobros.index', array_merge(request()->query(), ['estado_pago' => 'con_saldo'])) }}"
+               class="d-block text-decoration-none bg-white rounded shadow-sm p-3"
+               style="border-left:4px solid #0d6efd;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div style="font-size:.7rem;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Total Pendiente</div>
+                        <div style="font-size:1.5rem;font-weight:400;color:#0d6efd;line-height:1.1;">${{ number_format($kpiPendiente->importe, 2) }}</div>
+                        <div style="font-size:.75rem;color:#aaa;">{{ $kpiPendiente->cnt }} {{ $kpiPendiente->cnt == 1 ? 'cuenta' : 'cuentas' }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:42px;height:42px;background:#e8f0fe;">
+                        <i class="bi bi-wallet2" style="font-size:1.1rem;color:#0d6efd;"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- Vencidas --}}
+        <div class="col-6 col-xl-3">
+            <a href="{{ route('cobros.index', array_merge(request()->query(), ['vencimiento' => 'vencidas'])) }}"
+               class="d-block text-decoration-none bg-white rounded shadow-sm p-3"
+               style="border-left:4px solid #dc3545;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div style="font-size:.7rem;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Vencidas</div>
+                        <div style="font-size:1.5rem;font-weight:400;color:{{ $kpiVencidas->importe > 0 ? '#dc3545' : '#1a1a1a' }};line-height:1.1;">${{ number_format($kpiVencidas->importe, 2) }}</div>
+                        <div style="font-size:.75rem;color:#aaa;">{{ $kpiVencidas->cnt }} {{ $kpiVencidas->cnt == 1 ? 'cuenta' : 'cuentas' }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:42px;height:42px;background:#fdecea;">
+                        <i class="bi bi-exclamation-triangle" style="font-size:1.1rem;color:#dc3545;"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- Por Vencer 7 días --}}
+        <div class="col-6 col-xl-3">
+            <a href="{{ route('cobros.index', array_merge(request()->query(), ['vencimiento' => 'proximas'])) }}"
+               class="d-block text-decoration-none bg-white rounded shadow-sm p-3"
+               style="border-left:4px solid #6c757d;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div style="font-size:.7rem;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Por Vencer (7 días)</div>
+                        <div style="font-size:1.5rem;font-weight:400;color:#1a1a1a;line-height:1.1;">${{ number_format($kpiPorVencer->importe, 2) }}</div>
+                        <div style="font-size:.75rem;color:#aaa;">Próximas a vencer</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:42px;height:42px;background:#f0f0f0;">
+                        <i class="bi bi-clock-history" style="font-size:1.1rem;color:#6c757d;"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- Tasa de Cobranza --}}
+        <div class="col-6 col-xl-3">
+            <div class="bg-white rounded shadow-sm p-3" style="border-left:4px solid #198754;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div style="font-size:.7rem;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Tasa de Cobranza</div>
+                        <div style="font-size:1.5rem;font-weight:400;color:#198754;line-height:1.1;">
+                            {{ $tasaPct !== null ? $tasaPct.'%' : '—' }}
+                        </div>
+                        <div style="font-size:.75rem;color:#aaa;">Porcentaje cobrado</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:42px;height:42px;background:#e6f4ec;">
+                        <i class="bi bi-graph-up-arrow" style="font-size:1.1rem;color:#198754;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
     {{-- Filtros --}}
     <form method="GET" action="{{ route('cobros.index') }}" class="bg-white rounded shadow-sm p-3 mb-4">
         <div class="row g-2 align-items-end">
@@ -21,6 +102,7 @@
                 <label class="form-label mb-1 small">Estado de pago</label>
                 <select name="estado_pago" class="form-select form-select-sm">
                     <option value="">Todos</option>
+                    <option value="con_saldo" {{ request('estado_pago') === 'con_saldo' ? 'selected' : '' }}>Con Saldo</option>
                     <option value="pendiente" {{ request('estado_pago') === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
                     <option value="parcial"   {{ request('estado_pago') === 'parcial'   ? 'selected' : '' }}>Parcial</option>
                     <option value="pagado"    {{ request('estado_pago') === 'pagado'    ? 'selected' : '' }}>Pagado</option>
@@ -68,7 +150,7 @@
                 <tbody>
                     @forelse($cuentas as $cuenta)
                     @php
-                        $vencida = $cuenta->fecha_vencimiento && $cuenta->fecha_vencimiento->isPast() && $cuenta->estado_pago !== 'pagado';
+                        $vencida = $cuenta->fecha_vencimiento && $cuenta->fecha_vencimiento->isPast() && $cuenta->estado_pago !== 'pagado' && $cuenta->trabajo->estado_trabajo !== 'cancelado';
                     @endphp
                     <tr class="{{ $vencida ? 'table-danger' : '' }}">
                         <td class="text-muted">{{ $cuenta->id }}</td>
@@ -84,18 +166,18 @@
                         <td>
                             @php
                                 $estadoBadge = match($cuenta->trabajo->estado_trabajo) {
-                                    'pendiente'  => 'info',
-                                    'en_proceso' => 'primary',
-                                    'terminado'  => 'success',
-                                    'cancelado'  => 'danger',
-                                    default      => 'secondary',
+                                    'pendiente' => 'info',
+                                    'proceso'   => 'primary',
+                                    'terminado' => 'success',
+                                    'cancelado' => 'danger',
+                                    default     => 'secondary',
                                 };
                                 $estadoLabel = match($cuenta->trabajo->estado_trabajo) {
-                                    'pendiente'  => 'Pendiente',
-                                    'en_proceso' => 'En Proceso',
-                                    'terminado'  => 'Terminado',
-                                    'cancelado'  => 'Cancelado',
-                                    default      => ucfirst($cuenta->trabajo->estado_trabajo ?? '—'),
+                                    'pendiente' => 'Pendiente',
+                                    'proceso'   => 'En Proceso',
+                                    'terminado' => 'Terminado',
+                                    'cancelado' => 'Cancelado',
+                                    default     => ucfirst($cuenta->trabajo->estado_trabajo ?? '—'),
                                 };
                             @endphp
                             <span class="badge bg-{{ $estadoBadge }}" style="font-size:.7rem;">{{ $estadoLabel }}</span>
@@ -112,9 +194,13 @@
                             <span style="font-size:.68rem;color:#888;">{{ $cuenta->porcentaje_pagado }}%</span>
                         </td>
                         <td>
-                            <span class="badge bg-{{ $cuenta->estado_pago_badge }}">
-                                {{ $cuenta->estado_pago_label }}
-                            </span>
+                            @if($cuenta->trabajo->estado_trabajo === 'cancelado')
+                                <span class="badge bg-danger">Suspendida</span>
+                            @else
+                                <span class="badge bg-{{ $cuenta->estado_pago_badge }}">
+                                    {{ $cuenta->estado_pago_label }}
+                                </span>
+                            @endif
                         </td>
                         <td>
                             @if($cuenta->fecha_vencimiento)

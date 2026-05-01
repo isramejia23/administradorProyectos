@@ -23,8 +23,11 @@ class TrabajoObserver
 
     public function created(Trabajo $trabajo): void
     {
-        // Al crear un trabajo nuevo, la cuenta no tiene subtrabajos aún
-        // monto_extras se recalculará cuando se agreguen subtrabajos no incluidos
+        // Las solicitudes de vendedores no generan CxC hasta ser aprobadas
+        if (in_array($trabajo->estado_trabajo, ['solicitud', 'rechazado'])) {
+            return;
+        }
+
         CuentaCobrar::create([
             'trabajo_id'   => $trabajo->id,
             'monto_base'   => $trabajo->monto_total,
